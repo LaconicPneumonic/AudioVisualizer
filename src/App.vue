@@ -1,7 +1,6 @@
 <template>
   <div>
     <button @click="startPlaying">PLAY</button>
-    <div id="app"></div>
   </div>
 </template>
 
@@ -11,6 +10,8 @@ import { Sound } from "pts";
 import { GridGeometry } from "./grid";
 import { OrbitControls } from "./orbit";
 
+const test = require("/src/assets/test.mp3");
+console.log(test);
 // get the average frequency of the sound
 
 let analyzer;
@@ -26,7 +27,7 @@ function init() {
     1,
     3500
   );
-  camera.position.z = 1000;
+  camera.position.z = 100;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x050505);
@@ -38,11 +39,11 @@ function init() {
 
   //
 
-  geometry = new GridGeometry(10, 5);
+  geometry = new GridGeometry(10, 32);
   const material = new THREE.MeshBasicMaterial({
     side: THREE.DoubleSide,
     vertexColors: true,
-    wireframe: true,
+    // wireframe: true,
   });
 
   mesh = new THREE.Mesh(geometry, material);
@@ -57,7 +58,7 @@ function init() {
   controls = new OrbitControls(camera, renderer.domElement);
 
   //controls.update() must be called after any manual changes to the camera's transform
-  camera.position.set(0, 20, 100);
+  camera.position.set(0, 0, 100);
   controls.update();
 
   document.body.appendChild(renderer.domElement);
@@ -79,35 +80,31 @@ function onWindowResize() {
 function animate() {
   requestAnimationFrame(animate);
 
-  analyzer.freqDomain();
   controls.update();
-
+  //
   render();
 }
 
 let tick = true;
-let num_ticks = 0;
+// let num_ticks = 0;
 
 function render() {
   const time = Date.now();
 
-  // mesh.rotation.x = time * 0.025;
-  // mesh.rotation.y = time * 0.05;
-
   if (Math.floor(time) % 5 == 0) {
     if (tick) {
       // console.log("TICK", num_ticks);
-      // geometry.pushRow(
-      //   analyzer
-      //     .freqDomain()
-      //     .filter((_v, i) => i % 2 == 0)
-      //     .map((v) => v / 10)
-      // );
+      geometry.pushRow(
+        analyzer
+          .freqDomain()
+          .filter((_v, i) => i % 4 == 0)
+          .map((v) => v / 10)
+      );
       tick = false;
 
-      if (num_ticks === 5) console.log(geometry.getAttribute("position"));
+      // if (num_ticks === 5) console.log(geometry.getAttribute("position"));
 
-      num_ticks++;
+      // num_ticks++;
     }
   } else {
     tick = true;
@@ -131,7 +128,8 @@ export default {
       if (!this.init) {
         init();
 
-        analyzer = (await Sound.input()).analyze(128);
+        analyzer = (await Sound.load(test)).analyze(128);
+        analyzer.toggle();
         animate();
 
         this.init = true;

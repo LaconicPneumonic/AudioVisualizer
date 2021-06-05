@@ -1,4 +1,9 @@
 import * as THREE from "three"
+
+// function getXYZ(vertices, index) {
+
+//     return [vertices.getX(index), vertices.getY(index), vertices.getZ(index)]
+// }
 class GridGeometry extends THREE.BufferGeometry {
     constructor(size, segments, func = (x, y) => x * y) {
         super();
@@ -14,15 +19,17 @@ class GridGeometry extends THREE.BufferGeometry {
 
         this.lookup = [];
 
-        for (let i = 0; i <= this.parameters.segments; i++) {
+        for (let i = 0; i < this.parameters.segments; i++) {
             const ret = [];
 
-            for (let j = 0; j <= this.parameters.segments; j++) {
+            for (let j = 0; j < this.parameters.segments; j++) {
                 ret.push(0);
             }
 
             this.lookup.push(ret);
         }
+
+        // console.log(this.lookup.length, this.lookup[0].length)
 
         this.init();
     }
@@ -32,11 +39,9 @@ class GridGeometry extends THREE.BufferGeometry {
 
         const already_init = !!this.getAttribute("position");
         const vertices = already_init
-            ? this.getAttribute("position").array
+            ? this.getAttribute("position")
             : new THREE.Float32BufferAttribute(
-                new Array(
-                    this.parameters.segments * this.parameters.segments * 3
-                ).fill(0)
+                (this.parameters.segments) * (this.parameters.segments) * 3, 3
             );
 
 
@@ -52,17 +57,15 @@ class GridGeometry extends THREE.BufferGeometry {
 
         let index = 0;
 
-        for (let i = 0; i <= this.parameters.segments; i++) {
+        for (let i = 0; i < this.parameters.segments; i++) {
             const y = i * segmentSize - halfSize;
 
-            for (let j = 0; j <= this.parameters.segments; j++) {
+            for (let j = 0; j < this.parameters.segments; j++) {
                 const x = j * segmentSize - halfSize;
 
-                vertices[index++] = x;
-                vertices[index++] = -y;
-                vertices[index++] = 0;
-
-                // if (x == 0 && y == 0) console.log(x, y, i, j)
+                vertices.setXYZ(index, x, -y, this.lookup[i][j]);
+                // console.log(getXYZ(vertices, index))
+                index++;
 
                 if (!already_init) {
 
@@ -72,35 +75,31 @@ class GridGeometry extends THREE.BufferGeometry {
                     const r = x / this.parameters.size + 0.5;
                     const g = y / this.parameters.size + 0.5;
 
-                    if (i == 0) colors.push(r, g, 1); else colors.push(1, 0, 0)
+                    colors.push(r, g, 1);
                 }
             }
         }
 
         if (!already_init) {
-            let stuff = 0
-            for (let i = 0; i < this.parameters.segments; i++) {
-                for (let j = 0; j < this.parameters.segments; j++) {
+            // let stuff = 0
+            for (let i = 0; i < this.parameters.segments - 1; i++) {
+                for (let j = 0; j < this.parameters.segments - 1; j++) {
 
-                    // LOGIC FAILS HERE. REDO
-                    const a = i * (this.parameters.segments + 1) + (j + 1);
-                    const b = i * (this.parameters.segments + 1) + j;
-                    const c = (i + 1) * (this.parameters.segments + 1) + j;
-                    const d = (i + 1) * (this.parameters.segments + 1) + (j + 1);
+                    // Iterate through the first n-1 rows and columns i.e. (n)(n)
 
-                    // generate two faces (triangles) per iteration
+                    const first_index = i * (this.parameters.segments) + j;
 
-                    // const t1 = [vertices[a], vertices[b], vertices[d]]
-                    // const t2 = [vertices[b], vertices[c], vertices[d]]
+                    const second_index = first_index + 1;
 
-                    // if (i > this.parameters.segments - 2) {
-                    console.log("INDICES", ++stuff)
-                    console.log(a, b, d)
-                    console.log(b, c, d)
-                    // }
+                    const third_index = first_index + this.parameters.segments;
 
-                    indices.push(a, b, d); // face one
-                    indices.push(b, c, d); // face two
+                    const fourth_index = second_index + this.parameters.segments;
+
+                    // console.log(first_index, second_index, third_index); // face one
+                    // console.log(second_index, third_index, fourth_index); // face two
+
+                    indices.push(first_index, second_index, third_index); // face one
+                    indices.push(second_index, third_index, fourth_index); // face two
                 }
             }
 
@@ -112,7 +111,7 @@ class GridGeometry extends THREE.BufferGeometry {
         }
         this.setAttribute(
             "position",
-            new THREE.Float32BufferAttribute(vertices, 3)
+            vertices
         );
 
 
