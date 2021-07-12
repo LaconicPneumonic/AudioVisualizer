@@ -133,13 +133,14 @@ class GridGeometry extends THREE.BufferGeometry {
         }
 
         this.getAttribute("position").needsUpdate = true;
+        this.computeVertexNormals();
 
     }
 
     pushRow(arr) {
         if (arr.length != this.parameters.segments)
             throw Error(
-                `Incorrect Array Length. Expected: ${this.parameters.segments}`
+                `Incorrect Array Length. Expected: ${this.parameters.segments}. Got ${arr.length}`
             );
 
         this.lookup.shift();

@@ -1,31 +1,34 @@
 <template>
-  <div>
+  <div id="container">
     <button @click="startPlaying">PLAY</button>
   </div>
 </template>
 
 <script>
 import * as THREE from "three";
+import Stats from "stats-js";
 import { Sound } from "pts";
 import { GridGeometry } from "./grid";
 import { OrbitControls } from "./orbit";
 
 const test = require("/src/assets/test.mp3");
-console.log(test);
+const binSize = 256;
+const gridWidth = 128;
 // get the average frequency of the sound
-
+console.log(test);
 let analyzer;
 let camera, scene, renderer;
 let mesh;
 let geometry;
 let controls;
+var stats;
 
 function init() {
   camera = new THREE.PerspectiveCamera(
     27,
     window.innerWidth / window.innerHeight,
     1,
-    3500
+    200
   );
   camera.position.z = 100;
 
@@ -39,7 +42,7 @@ function init() {
 
   //
 
-  geometry = new GridGeometry(10, 128);
+  geometry = new GridGeometry(10, gridWidth);
   const material = new THREE.MeshBasicMaterial({
     side: THREE.DoubleSide,
     vertexColors: true,
@@ -65,6 +68,9 @@ function init() {
 
   //
 
+  stats = new Stats();
+  stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
+  document.body.appendChild(stats.dom);
   window.addEventListener("resize", onWindowResize);
 }
 
@@ -77,38 +83,41 @@ function onWindowResize() {
 
 //
 
-function animate() {
+let then = Date.now();
+let fpsInterval = 1000 / 30;
+const startTime = then;
+
+function animate(then) {
   requestAnimationFrame(animate);
 
-  controls.update();
-  //
-  render();
+  const now = Date.now();
+  const elapsed = now - then;
+
+  if (elapsed > fpsInterval) {
+    then = now - (elapsed % fpsInterval);
+    //
+    render(now - startTime);
+    controls.update();
+  }
+
+  stats.update();
 }
 
-let tick = true;
-// let num_ticks = 0;
-
 function render() {
-  const time = Date.now();
+  // geometry.pushRow(
+  //   Array.from({ length: gridWidth }).map(
+  //     (v, i) =>
+  //       5 * Math.sin((2 * Math.PI * (i - ((time / 1000) % 1000))) / gridWidth)
+  //   )
+  // );
 
-  if (Math.floor(time) % 5 == 0) {
-    if (tick) {
-      // console.log("TICK", num_ticks);
-      geometry.pushRow(
-        analyzer
-          .freqDomain()
-          // .filter((_v, i) => i % 2 == 0)
-          .map((v) => v / 10)
-      );
-      tick = false;
-
-      // if (num_ticks === 5) console.log(geometry.getAttribute("position"));
-
-      // num_ticks++;
-    }
-  } else {
-    tick = true;
-  }
+  geometry.pushRow(
+    analyzer
+      .freqDomain()
+      .slice(0, 128)
+      // .filter((_v, i) => i % (binSize / gridWidth) == 0)
+      .map((v) => v / 30)
+  );
 
   renderer.render(scene, camera);
 }
@@ -132,9 +141,8 @@ export default {
           analyzer.start(0);
         }
       } else {
-        console.log("HERE");
-        analyzer = (await Sound.load(test)).analyze(128);
-        analyzer.start();
+        analyzer = (await Sound.input()).analyze(binSize);
+        // analyzer.start();
       }
 
       if (!this.init) {
