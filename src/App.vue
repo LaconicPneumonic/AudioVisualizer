@@ -39,11 +39,11 @@ function init() {
 
   //
 
-  geometry = new GridGeometry(10, 32);
+  geometry = new GridGeometry(10, 128);
   const material = new THREE.MeshBasicMaterial({
     side: THREE.DoubleSide,
     vertexColors: true,
-    // wireframe: true,
+    wireframe: true,
   });
 
   mesh = new THREE.Mesh(geometry, material);
@@ -97,7 +97,7 @@ function render() {
       geometry.pushRow(
         analyzer
           .freqDomain()
-          .filter((_v, i) => i % 4 == 0)
+          // .filter((_v, i) => i % 2 == 0)
           .map((v) => v / 10)
       );
       tick = false;
@@ -123,13 +123,23 @@ export default {
   mounted: async function () {},
   methods: {
     startPlaying: async function () {
-      // create an Audio source
+      // create an Audio source\
+
+      if (analyzer) {
+        if (!analyzer.playing) {
+          analyzer.start();
+        } else {
+          analyzer.start(0);
+        }
+      } else {
+        console.log("HERE");
+        analyzer = (await Sound.load(test)).analyze(128);
+        analyzer.start();
+      }
 
       if (!this.init) {
         init();
 
-        analyzer = (await Sound.load(test)).analyze(128);
-        analyzer.toggle();
         animate();
 
         this.init = true;
