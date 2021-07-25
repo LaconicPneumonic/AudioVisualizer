@@ -1,6 +1,6 @@
 # Grid Audio Visualizer
 
-Plays the MP3 asset and visualizes the frequency domain over time
+Records and visualizes audio input
 
 ## Project setup
 

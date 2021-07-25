@@ -9,15 +9,13 @@
 import * as THREE from "three";
 import Stats from "stats-js";
 import { Sound } from "pts";
-import { GridGeometry } from "./grid";
-import { OrbitControls } from "./orbit";
+import { GridGeometry } from "./lib/grid";
+import { OrbitControls } from "./lib/orbit";
 
-const test = require("/src/assets/test.mp3");
 const textureJpg = require("/src/assets/fiveTone.jpg");
 const binSize = 256;
 const gridWidth = 128;
 // get the average frequency of the sound
-console.log(test);
 let analyzer;
 let camera, scene, renderer;
 let mesh;
