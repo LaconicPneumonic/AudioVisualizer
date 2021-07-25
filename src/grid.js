@@ -12,8 +12,6 @@ class GridGeometry extends THREE.BufferGeometry {
             func: func,
         };
 
-        // generate vertices, normals and color data for a simple grid geometry
-
         this.lookup = [];
 
         for (let i = 0; i < this.parameters.segments; i++) {
@@ -62,12 +60,13 @@ class GridGeometry extends THREE.BufferGeometry {
                 const x = j * segmentSize - halfSize;
 
                 vertices.setXYZ(index, x, -y, this.lookup[i][j]);
-                // console.log(getXYZ(vertices, index))
                 index++;
 
-
-
                 normals.push(0, 0, 1);
+
+                const color = new THREE.Color("#FF00FF")
+                colors.push(color.r, color.g, color.b);
+
 
                 const r = x / this.parameters.size + 0.5;
                 const g = y / this.parameters.size + 0.5;
@@ -80,21 +79,13 @@ class GridGeometry extends THREE.BufferGeometry {
         for (let i = 0; i < this.parameters.segments - 1; i++) {
             for (let j = 0; j < this.parameters.segments - 1; j++) {
 
-                // Iterate through the first n-1 rows and columns i.e. (n)(n)
+                const a = i + this.parameters.segments * j;
+                const b = i + this.parameters.segments * (j + 1);
+                const c = (i + 1) + this.parameters.segments * (j + 1);
+                const d = (i + 1) + this.parameters.segments * j;
 
-                const first_index = i * (this.parameters.segments) + j;
-
-                const second_index = first_index + 1;
-
-                const third_index = first_index + this.parameters.segments;
-
-                const fourth_index = second_index + this.parameters.segments;
-
-                // console.log(first_index, second_index, third_index); // face one
-                // console.log(second_index, third_index, fourth_index); // face two
-
-                indices.push(first_index, second_index, third_index); // face one
-                indices.push(second_index, third_index, fourth_index); // face two
+                indices.push(a, b, d);
+                indices.push(b, c, d);
             }
         }
 
@@ -110,12 +101,14 @@ class GridGeometry extends THREE.BufferGeometry {
 
 
         this.getAttribute("position").needsUpdate = true;
+        this.getAttribute("color").needsUpdate = true;
     }
 
     update() {
 
 
         const vertices = this.getAttribute("position")
+        const colors = this.getAttribute("color")
 
 
         let index = 0;
@@ -125,7 +118,8 @@ class GridGeometry extends THREE.BufferGeometry {
             for (let j = 0; j < this.parameters.segments; j++) {
 
                 vertices.setZ(index, this.lookup[i][j]);
-                // console.log(this.getXYZ(vertices, index))
+                const color = new THREE.Color("#FF00FF")
+                colors.setXYZ(index, color.r, color.g, color.b)
                 index++;
 
 
@@ -133,6 +127,7 @@ class GridGeometry extends THREE.BufferGeometry {
         }
 
         this.getAttribute("position").needsUpdate = true;
+        this.getAttribute("color").needsUpdate = true;
         this.computeVertexNormals();
 
     }
