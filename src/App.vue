@@ -1,7 +1,11 @@
 <template>
-  <div id="container">
-    <button @click="startPlaying">START</button>
-    <button @click="stopPlaying">STOP</button>
+  <div>
+    <div id="stats"></div>
+
+    <div id="container">
+      <button @click="startPlaying">START</button>
+      <button @click="stopPlaying">STOP</button>
+    </div>
   </div>
 </template>
 
@@ -13,7 +17,7 @@ import { GridGeometry } from "./lib/grid";
 import { OrbitControls } from "./lib/orbit";
 
 const textureJpg = require("/src/assets/fiveTone.jpg");
-const binSize = 256;
+const binSize = 128;
 const gridWidth = 128;
 // get the average frequency of the sound
 let analyzer;
@@ -87,8 +91,10 @@ function init() {
   //
 
   stats = new Stats();
-  stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
-  // document.body.appendChild(stats.dom);
+  stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+  stats.dom.style.position = "relative";
+  stats.dom.style.float = "left";
+  document.getElementById("stats").appendChild(stats.dom);
   window.addEventListener("resize", onWindowResize);
 }
 
@@ -104,7 +110,6 @@ function onWindowResize() {
 let then = Date.now();
 let fpsInterval = 1000 / 30;
 const startTime = then;
-
 export default {
   name: "App",
   data: function () {
@@ -138,39 +143,26 @@ export default {
       this.recording = false;
     },
     render: function () {
-      // geometry.pushRow(
-      //   Array.from({ length: gridWidth }).map(
-      //     (v, i) =>
-      //       5 * Math.sin((2 * Math.PI * (i - ((time / 1000) % 1000))) / gridWidth)
-      //   )
-      // );
-
       if (this.recording) {
-        geometry.pushRow(
-          analyzer
-            .freqDomain()
-            .slice(0, 128)
-            .map((v) => v / 30)
-        );
+        geometry.pushRow(analyzer.freqDomain().map((v) => v / 30));
       }
 
       renderer.render(scene, camera);
     },
 
-    animate: function (then) {
-      requestAnimationFrame(this.animate);
-
+    animate: function () {
       const now = Date.now();
       const elapsed = now - then;
+
+      requestAnimationFrame(() => this.animate());
 
       if (elapsed > fpsInterval) {
         then = now - (elapsed % fpsInterval);
         //
         this.render(now - startTime);
         controls.update();
+        stats.update();
       }
-
-      stats.update();
     },
   },
 };
