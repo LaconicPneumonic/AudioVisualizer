@@ -1,12 +1,20 @@
 <template>
-  <div>
-    <div id="stats"></div>
-
-    <div id="container">
-      <button @click="startPlaying">START</button>
-      <button @click="stopPlaying">STOP</button>
-    </div>
-  </div>
+  <v-container fluid class="primary fill-height">
+    <v-row class="text-center">
+      <v-col>
+        <v-btn @click="startPlaying" text outlined elevation="5">START</v-btn>
+        <v-btn @click="stopPlaying" text outlined elevation="5">STOP</v-btn>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <div id="container"></div>
+      </v-col>
+    </v-row>
+    <v-footer>
+      <div id="stats"></div>
+    </v-footer>
+  </v-container>
 </template>
 
 <script>
@@ -86,7 +94,7 @@ function init() {
   camera.position.set(0, 0, 100);
   controls.update();
 
-  document.body.appendChild(renderer.domElement);
+  document.getElementById("container").appendChild(renderer.domElement);
 
   //
 
@@ -176,5 +184,9 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+.fixed {
+  position: fixed;
 }
 </style>
