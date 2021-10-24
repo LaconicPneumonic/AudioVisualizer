@@ -11,6 +11,7 @@
     "core-js": "^3.6.5",
     "pts": "^0.10.6",
     "stats-js": "^1.0.1",
+    "three": "^0.133.1",
     "vue": "^2.6.11"
   },
   "devDependencies": {
