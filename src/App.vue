@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 <template>
   <v-container fluid class="primary fill-height">
     <v-row class="text-center">
@@ -23,10 +24,13 @@ import Stats from "stats-js";
 import { Sound } from "pts";
 import { GridGeometry } from "./lib/grid";
 import { OrbitControls } from "./lib/orbit";
+// eslint-disable-next-line no-unused-vars
+import { RectAreaLightHelper, RectAreaLightUniformsLib } from "./lib/rect";
 
 const textureJpg = require("/src/assets/fiveTone.jpg");
 const binSize = 128;
-const gridWidth = 128;
+const gridSegments = 128;
+const gridWidth = 30;
 // get the average frequency of the sound
 let analyzer;
 let camera, scene, renderer;
@@ -42,43 +46,44 @@ function init() {
     1,
     200
   );
-  camera.position.z = 100;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
 
   //
 
-  const ambientLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
-  scene.add(ambientLight);
+  // const ambientLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
+  // scene.add(ambientLight);
 
-  const width = 100;
-  const height = 100;
-  const intensity = 1;
-  const rectLight = new THREE.RectAreaLight(0xffffff, intensity, width, height);
-  rectLight.position.set(5, 5, 100);
-  rectLight.lookAt(0, 0, 0);
-  scene.add(rectLight);
-
-  const pointLight = new THREE.PointLight(0xffffff, 0.8);
-  camera.add(pointLight);
-  scene.add(camera);
+  // const pointLight = new THREE.PointLight(0xffffff, 0.8);
+  // camera.add(pointLight);
+  // scene.add(camera);
 
   const texture = new THREE.TextureLoader().load(textureJpg);
 
   texture.minFilter = THREE.NearestFilter;
   texture.magFilter = THREE.NearestFilter;
-  //
+  // rect lights
 
-  geometry = new GridGeometry(30, gridWidth);
+  RectAreaLightUniformsLib.init();
 
-  const material = new THREE.MeshPhongMaterial({
-    // gradientMap: texture,
-    color: "#03fcdf",
-    side: THREE.DoubleSide,
-    vertexColors: true,
+  const rectHeight = 30;
+  const rectWidth = gridWidth / 3;
+  [0xff0000, 0x00ff00, 0x0000ff].forEach((c, i) => {
+    const rectLight = new THREE.RectAreaLight(c, 75, rectWidth, rectHeight);
+    rectLight.position.set(rectWidth * (i - 1), 15, rectHeight / 2);
+    rectLight.rotation.set(-Math.PI / 2, 0, 0);
+    scene.add(rectLight);
+    scene.add(new RectAreaLightHelper(rectLight));
   });
 
+  geometry = new GridGeometry(gridWidth, gridSegments);
+
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x000000,
+    roughness: 1,
+    metalness: 0,
+  });
   mesh = new THREE.Mesh(geometry, material);
   scene.add(mesh);
 
@@ -91,7 +96,7 @@ function init() {
   controls = new OrbitControls(camera, renderer.domElement);
 
   //controls.update() must be called after any manual changes to the camera's transform
-  camera.position.set(0, 0, 100);
+  camera.position.set(0, 0, 90);
   controls.update();
 
   document.getElementById("container").appendChild(renderer.domElement);
@@ -152,7 +157,7 @@ export default {
     },
     render: function () {
       if (this.recording) {
-        geometry.pushRow(analyzer.freqDomain().map((v) => v / 30));
+        geometry.pushRow([...analyzer.freqDomain()]);
       }
 
       renderer.render(scene, camera);

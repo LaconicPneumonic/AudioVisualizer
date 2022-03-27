@@ -117,7 +117,7 @@ class GridGeometry extends THREE.BufferGeometry {
 
             for (let j = 0; j < this.parameters.segments; j++) {
 
-                vertices.setZ(index, this.lookup[i][j]);
+                vertices.setZ(index, Math.pow(1.1, (this.lookup[i][j] / 7)) - 1);
                 const color = new THREE.Color("#FF00FF")
                 colors.setXYZ(index, color.r, color.g, color.b)
                 index++;
